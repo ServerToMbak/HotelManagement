@@ -14,7 +14,7 @@ namespace WhiteLagoon.Infrastructure.Repository
     public class Repository<T> : IRepository<T> where T : class
     {
         private readonly ApplicationDbContext _db;
-        internal DbSet<T> dbSet;
+        public DbSet<T> dbSet;
         public Repository(ApplicationDbContext db)
         {
             _db = db;
@@ -64,7 +64,7 @@ namespace WhiteLagoon.Infrastructure.Repository
                 foreach (var includeProp in inculdeProperties
                     .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    query.Include(includeProp);
+                    query = query.Include(includeProp);
                 }
             }
             return query.ToList();
