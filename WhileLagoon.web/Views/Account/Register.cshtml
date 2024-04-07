@@ -12,7 +12,8 @@
             <div class="row pt-3">
                 <div class="col-md-12">
                     <form class="row" method="post">
-                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <input asp-for="@Model.RedirectUrl" hidden />
+                        @*<div asp-validation-summary="All" class="text-danger"></div>*@
                         @*<asp-validation-summary for></asp-validation-summary>*@
                         <div class="form-floating mb-3 col-md-12">
                             <input asp-for="Email" class="form-control" aria-required="true" />

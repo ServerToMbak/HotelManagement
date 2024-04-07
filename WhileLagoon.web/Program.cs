@@ -17,6 +17,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+//Thats how the default url comes but we can modify it
+builder.Services.ConfigureApplicationCookie(option =>
+{
+    option.AccessDeniedPath = "/Account/AccessDenied";
+    option.LoginPath = "/Account/Login";
+});
+
+//Ypou can configure here your password requirements
+builder.Services.Configure<IdentityOptions>(option =>
+{
+    option.Password.RequiredLength = 6;
+   
+
+});
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
