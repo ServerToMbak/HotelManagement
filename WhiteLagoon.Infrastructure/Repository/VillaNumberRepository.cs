@@ -14,7 +14,7 @@ namespace WhiteLagoon.Infrastructure.Repository
 
         public void Update(VillaNumber entity)
         {
-            _db.Update(entity);
+            _db.VillaNumbers.Update(entity);
         }
     }
 }
