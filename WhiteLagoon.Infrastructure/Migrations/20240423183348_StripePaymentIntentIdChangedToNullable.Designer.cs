@@ -12,15 +12,15 @@ using WhiteLagoon.Infrastructure.Data;
 namespace WhiteLagoon.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240330183044_Init")]
-    partial class Init
+    [Migration("20240423183348_StripePaymentIntentIdChangedToNullable")]
+    partial class StripePaymentIntentIdChangedToNullable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.2")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -323,6 +323,80 @@ namespace WhiteLagoon.Infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("WhiteLagoon.Domain.Entities.Booking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ActualCheckInDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ActualCheckOutDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("BookingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("CheckInDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("CheckOutDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPaymentSuccessful")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Nights")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StripePaymentIntentId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StripeSessionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("TotalCost")
+                        .HasColumnType("float");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("VillaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VillaNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VillaId");
+
+                    b.ToTable("Bookings");
+                });
+
             modelBuilder.Entity("WhiteLagoon.Domain.Entities.Villa", b =>
                 {
                     b.Property<int>("Id")
@@ -371,7 +445,7 @@ namespace WhiteLagoon.Infrastructure.Migrations
                             Occupancy = 4,
                             Price = 200.0,
                             Sqft = 550,
-                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            Updated_Date = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -382,7 +456,7 @@ namespace WhiteLagoon.Infrastructure.Migrations
                             Occupancy = 4,
                             Price = 300.0,
                             Sqft = 550,
-                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            Updated_Date = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
@@ -393,7 +467,7 @@ namespace WhiteLagoon.Infrastructure.Migrations
                             Occupancy = 4,
                             Price = 400.0,
                             Sqft = 750,
-                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            Updated_Date = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -417,47 +491,47 @@ namespace WhiteLagoon.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            VillaNumber = 101,
+                            Villa_Number = 101,
                             VillaId = 1
                         },
                         new
                         {
-                            VillaNumber = 102,
+                            Villa_Number = 102,
                             VillaId = 1
                         },
                         new
                         {
-                            VillaNumber = 103,
+                            Villa_Number = 103,
                             VillaId = 1
                         },
                         new
                         {
-                            VillaNumber = 104,
+                            Villa_Number = 104,
                             VillaId = 1
                         },
                         new
                         {
-                            VillaNumber = 201,
+                            Villa_Number = 201,
                             VillaId = 2
                         },
                         new
                         {
-                            VillaNumber = 202,
+                            Villa_Number = 202,
                             VillaId = 2
                         },
                         new
                         {
-                            VillaNumber = 203,
+                            Villa_Number = 203,
                             VillaId = 2
                         },
                         new
                         {
-                            VillaNumber = 301,
+                            Villa_Number = 301,
                             VillaId = 3
                         },
                         new
                         {
-                            VillaNumber = 302,
+                            Villa_Number = 302,
                             VillaId = 3
                         });
                 });
@@ -520,6 +594,25 @@ namespace WhiteLagoon.Infrastructure.Migrations
                         .HasForeignKey("VillaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Villa");
+                });
+
+            modelBuilder.Entity("WhiteLagoon.Domain.Entities.Booking", b =>
+                {
+                    b.HasOne("WhiteLagoon.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WhiteLagoon.Domain.Entities.Villa", "Villa")
+                        .WithMany()
+                        .HasForeignKey("VillaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
 
                     b.Navigation("Villa");
                 });

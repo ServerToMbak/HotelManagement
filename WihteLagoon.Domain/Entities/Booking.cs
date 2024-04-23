@@ -8,7 +8,7 @@ namespace WhiteLagoon.Domain.Entities
         [Key]
         public int Id { get; set; }
         [Required]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         [ForeignKey("UserId")]
         public ApplicationUser User { get; set; }
         [Required]
@@ -32,12 +32,12 @@ namespace WhiteLagoon.Domain.Entities
         [Required]
         public DateOnly CheckOutDate { get; set; }
 
-        "
+        
         public bool IsPaymentSuccessful { get; set; } = false;
         public DateTime PaymentDate { get; set; }
 
         public string? StripeSessionId { get; set; }
-        public string StripePaymentIntentId { get; set; }
+        public string? StripePaymentIntentId { get; set; }
 
 
 

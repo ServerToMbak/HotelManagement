@@ -25,14 +25,16 @@
         </button>
     </div>
     <form method="post" style="background-color:black"
-          asp-action="GetVillasByDate">
+          
+          data-ajax-mode="post" data-ajax="true" data-ajax-mode="replace"
+            data-ajax-update="#VillasList">
 
         <div class="row p-0 mx-0 py-4">
 
             <div class="col-12 col-md-5  offset-md-1 pl-2  pr-2 pr-md-0">
                 <div class="form-group">
                     <label>Check In Date</label>
-                    <input asp-for="CheckInDate" type="date" class="form-control" />
+                    <input asp-for="CheckInDate" type="date"  class="form-control" />
                 </div>
             </div>
 
@@ -51,7 +53,7 @@
 
             <div class="col-4 col-md-2 pt-4 pr-2">
                 <div class="form-group">
-                    <button type="button" onclick="fnLoadVillaList()" class="btn btn-success btn-block">
+                    <button type="submit" onclick="fnLoadVillaList()" class="btn btn-success btn-block">
                         <i class="bi bi-search"></i>  &nbsp; Check Availability
                     </button>
 
@@ -65,7 +67,9 @@
 
 @section scripts{
     <script>
-        function fnLoadVillaList() {
+        // var data = new Date(checkInDate);
+        var date = new Date($("#CheckInDate").val());
+            function fnLoadVillaList() {
             $('.spinner').show();
             var objData = {
                 checkInDate: $("#CheckInDate").val(),

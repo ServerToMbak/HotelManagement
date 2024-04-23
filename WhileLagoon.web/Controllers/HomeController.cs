@@ -42,7 +42,7 @@ namespace WhiteLagoon.web.Controllers
 
 
         [HttpPost]
-        public IActionResult GetVillasByDate(int nights,DateOnly checkInDate)
+        public IActionResult GetVillasByDate(int nights, DateTime checkInDate)
         {
             Thread.Sleep(1000);
             var VillaList = _unitOfWork.Villa.GetAll(inculdeProperties: "VillaAmenity").ToList();
@@ -59,7 +59,7 @@ namespace WhiteLagoon.web.Controllers
             HomeVM homeVM = new HomeVM
             {
                 VillaList = VillaList,
-                CheckInDate = checkInDate,
+                CheckInDate =DateOnly.FromDateTime(checkInDate),
                 Nights = nights
 
             };
