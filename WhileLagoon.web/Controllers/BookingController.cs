@@ -58,13 +58,13 @@ namespace WhiteLagoon.web.Controllers
             _unitOfWork.Booking.Add(booking);
             _unitOfWork.Save();
 
-            var domian =  Request.Scheme + "://" + Request.Host.Value + "/";
+            var domain =  Request.Scheme + "://" + Request.Host.Value + "/";
             var options = new SessionCreateOptions
             {
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment",
-                SuccessUrl = domian + $"/booking/BoolingConfirmation?bookingId={booking.Id}",
-                CancelUrl = domian + $"/booking/FinalizeBooking?villaId={booking.VillaId}&checkInDate={booking.CheckInDate}&nights={booking.Nights}"
+                SuccessUrl = domain + $"booking/BookingConfirmation?bookingId={booking.Id}",
+                CancelUrl = domain + $"booking/FinalizeBooking?villaId={booking.VillaId}&checkInDate={booking.CheckInDate.ToString("yyyy-MM-dd")}&nights={booking.Nights}"
 
             };
 
@@ -86,7 +86,10 @@ namespace WhiteLagoon.web.Controllers
             var service = new SessionService();
             Session session = service.Create(options);
 
+            _unitOfWork.Booking.UpdateStritePaymentId(booking.Id, session.Id,session.PaymentIntentId);
+            _unitOfWork.Save();
             Response.Headers.Add("Location", session.Url);
+            
             return new StatusCodeResult(303);
 
         }
@@ -94,6 +97,22 @@ namespace WhiteLagoon.web.Controllers
         [Authorize]
         public  IActionResult BookingConfirmation(int bookingId)
         {
+            Booking bookingFromDb = _unitOfWork.Booking.Get(u => u.Id == bookingId,inculdeProperties: "User,Villa");
+            
+            if(bookingFromDb.Status  == SD.StatusPending)
+            {
+                //this is a pending order, we need to confirm that if payment was succesfull
+                var service = new SessionService();
+                Session session = service.Get(bookingFromDb.StripeSessionId);
+
+                if(session.PaymentStatus =="paid")
+                {
+                    _unitOfWork.Booking.UpdateStatus(bookingFromDb.Id, SD.StatusApproved);
+                    _unitOfWork.Booking.UpdateStritePaymentId(bookingFromDb.Id, session.Id, session.PaymentIntentId);
+                    _unitOfWork.Save(); 
+                }
+            }
+            
             return View(bookingId);
         }
     }
