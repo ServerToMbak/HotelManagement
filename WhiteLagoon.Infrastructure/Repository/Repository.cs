@@ -38,7 +38,7 @@ namespace WhiteLagoon.Infrastructure.Repository
                 foreach (var includeProp in inculdeProperties
                     .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    query.Include(includeProp);
+                    query = query.Include(includeProp);
                 }
             }
             return query.FirstOrDefault();

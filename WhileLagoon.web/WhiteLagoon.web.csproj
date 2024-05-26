@@ -24,4 +24,8 @@
     <Folder Include="wwwroot\images\VillaImage\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\js\dashboard\radialChart.js" />
+  </ItemGroup>
+
 </Project>
