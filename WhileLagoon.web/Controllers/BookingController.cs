@@ -1,19 +1,26 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe.Checkout;
+using Syncfusion.DocIO.DLS;
 using System.Security.Claims;
 using WhiteLagoon.Application.Common.Interfaces;
 using WhiteLagoon.Application.Common.Utility;
 using WhiteLagoon.Domain.Entities;
-
+using Syncfusion.DocIO;
+using Syncfusion.DocIORenderer;
+using System.Drawing;
+using Syncfusion.Drawing;
+using Syncfusion.Pdf;
 namespace WhiteLagoon.web.Controllers
 {
     public class BookingController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public BookingController(IUnitOfWork unitOfWork)
+        private readonly IWebHostEnvironment _webHostEnvironemnt;
+        public BookingController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironemnt)
         {
             _unitOfWork = unitOfWork;
+            _webHostEnvironemnt = webHostEnvironemnt;
         }
         [Authorize]
         public IActionResult Index()
@@ -165,6 +172,157 @@ namespace WhiteLagoon.web.Controllers
             return  Json (new { data = objBookings });
         }
 
+        [HttpPost]
+        [Authorize]
+        public IActionResult GenerateInvoice(int id, string downloadType)
+        {
+            string basePath = _webHostEnvironemnt.WebRootPath;
+
+            WordDocument document = new WordDocument();
+
+            string datapath = basePath + @"/exports/BookingDetails.docx";
+
+            using FileStream fileStream = new(datapath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+            document.Open(fileStream, FormatType.Automatic);
+
+            Booking bookingFromDb = _unitOfWork.Booking.Get(u => u.Id == id, inculdeProperties: "User,Villa");
+
+
+            TextSelection textSelection = document.Find("xx_customer_name", false, false);
+
+            WTextRange textRange = textSelection.GetAsOneRange();
+
+            textRange.Text = bookingFromDb.Name;
+
+
+            textSelection = document.Find("xx_customer_phone", false, false);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = bookingFromDb.Phone;
+
+
+            //textSelection = document.Find("XX_BOOKING_NUMBER", false, false);
+            //textRange = textSelection.GetAsOneRange();
+            //textRange.Text = "BOOKING ID " + bookingFromDb.Id.ToString();
+
+            textSelection = document.Find("XX_BOOKING_DATE", false, false);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text ="BOOKING DATE " +  bookingFromDb.BookingDate.ToShortDateString();
+
+
+
+
+            textSelection = document.Find("xx_customer_email", false, false);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = bookingFromDb.Email;
+
+            textSelection = document.Find("xx_payment_date", false, false);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = bookingFromDb.PaymentDate.ToShortDateString();
+
+            textSelection = document.Find("xx_checkin_date", false, false);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = bookingFromDb.CheckInDate.ToShortDateString();
+
+            textSelection = document.Find("xx_checkout_date", false, false);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = bookingFromDb.CheckOutDate.ToShortDateString();
+
+            textSelection = document.Find("xx_booking_total", false, false);
+            textRange = textSelection.GetAsOneRange();
+            textRange.Text = bookingFromDb.TotalCost.ToString("c");
+
+
+            WTable table = new(document);
+            table.TableFormat.Borders.LineWidth = 1f;
+            table.TableFormat.Borders.Color = Syncfusion.Drawing.Color.Black;
+            table.TableFormat.Paddings.Top = 7f;
+            table.TableFormat.Paddings.Bottom = 7f;
+            table.TableFormat.Borders.Horizontal.LineWidth = 1f;
+
+
+            int rows = bookingFromDb.VillaNumber > 0 ? 3 : 2;
+            table.ResetCells(rows, 4);
+
+           
+            WTableRow row0 = table.Rows[0];
+
+            row0.Cells[0].AddParagraph().AppendText("NIGHTS");
+            row0.Cells[0].Width = 80;
+            row0.Cells[1].AddParagraph().AppendText("VILLA");
+            row0.Cells[1].Width = 220;
+
+            row0.Cells[2].AddParagraph().AppendText("PRICE PER NIGHT");
+
+            row0.Cells[3].AddParagraph().AppendText("TOTAL");
+            row0.Cells[3].Width = 80;
+
+
+
+            WTableRow row1 = table.Rows[1]; 
+
+            row1.Cells[0].AddParagraph().AppendText(bookingFromDb.Nights.ToString());
+            row1.Cells[0].Width = 80;
+            row1.Cells[1].AddParagraph().AppendText(bookingFromDb.Villa.Name);
+            row1.Cells[1].Width = 220;
+
+            row1.Cells[2].AddParagraph().AppendText((bookingFromDb.TotalCost / bookingFromDb.Nights).ToString("c"));
+
+            row1.Cells[3].AddParagraph().AppendText(bookingFromDb.TotalCost.ToString("c"));
+            row1.Cells[3].Width = 80;
+            
+            if (bookingFromDb.VillaNumber > 0)
+            {
+                WTableRow row2 = table.Rows[2];
+
+                row2.Cells[0].Width = 80;
+                row2.Cells[1].AddParagraph().AppendText("Villa Number - " + bookingFromDb.VillaNumber.ToString());
+                row2.Cells[1].Width = 220;
+                row2.Cells[3].Width = 80;
+            }
+
+            WTableStyle tableStyle = document.AddTableStyle("CustomStyle") as WTableStyle;
+            tableStyle.TableProperties.RowStripe = 1;
+            tableStyle.TableProperties.ColumnStripe = 2;
+            tableStyle.TableProperties.Paddings.Top = 2;
+            tableStyle.TableProperties.Paddings.Bottom = 1;
+            tableStyle.TableProperties.Paddings.Right = 5.4f;
+            tableStyle.TableProperties.Paddings.Left = 5.4f;
+
+            ConditionalFormattingStyle firstRowStyle = tableStyle.ConditionalFormattingStyles.Add(ConditionalFormattingType.FirstRow);
+            firstRowStyle.CharacterFormat.Bold = true;
+            firstRowStyle.CharacterFormat.TextColor = Syncfusion.Drawing.Color.FromArgb(255, 255, 255, 255);
+            firstRowStyle.CellProperties.BackColor = Syncfusion.Drawing.Color.Black;
+
+            table.ApplyStyle("CustomStyle");
+
+            TextBodyPart bodyPart = new(document);
+
+            bodyPart.BodyItems.Add(table);
+            document.Replace("<ADDTABLEHERE>",bodyPart,false,false);
+
+
+
+            using DocIORenderer renderer = new();
+            MemoryStream memoryStream = new();
+
+            if (downloadType == "word")
+            {
+                document.Save(memoryStream, FormatType.Docx);
+                memoryStream.Position = 0;
+
+                return File(memoryStream, "application/docx", "BookingDetails.docx");
+            }
+            else
+            {
+                PdfDocument pdfDocument = renderer.ConvertToPDF(document);
+                pdfDocument.Save(memoryStream);
+                memoryStream.Position = 0;
+
+                return File(memoryStream, "application/pdf", "BookingDetails.pdf");
+            }
+        
+        }
 
         [Authorize]
         public IActionResult BookingDetails(int bookingId) 

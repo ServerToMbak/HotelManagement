@@ -12,9 +12,9 @@ namespace WhiteLagoon.Application.Common.Interfaces
 
     {
 
-        IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? inculdeProperties = null);
+        IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? inculdeProperties = null, bool tracked = false);
 
-        T Get(Expression<Func<T, bool>> filter, string? inculdeProperties = null);
+        T Get(Expression<Func<T, bool>> filter, string? inculdeProperties = null, bool tracked = false);
         void Add(T entity);
         void Remove(T entity);
         bool Any(Expression<Func<T, bool>> filter);
