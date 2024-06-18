@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Syncfusion.Licensing;
 using WhiteLagoon.Application.Common.Interfaces;
+using WhiteLagoon.Application.Services.Implementation;
+using WhiteLagoon.Application.Services.Interfaces;
 using WhiteLagoon.Domain.Entities;
 using WhiteLagoon.Infrastructure.Data;
 using WhiteLagoon.Infrastructure.Repository;
@@ -33,7 +35,14 @@ builder.Services.Configure<IdentityOptions>(option =>
 
 });
 
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+builder.Services.AddScoped<IVillaService, VillaService>();
+builder.Services.AddScoped<IVillaNumberService, VillaNumberService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IAmenityService,AmenityService>();
 
 var app = builder.Build();
 StripeConfiguration.ApiKey = app.Configuration.GetSection("Stripe:SecretKey").Get<string>();
@@ -53,9 +62,18 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
-
+SeedDatabase();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+void SeedDatabase()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+        dbInitializer.Initialize();
+    }
+}

@@ -1,6 +1,6 @@
 ﻿namespace WhiteLagoon.web.VİewModel
 {
-    public class PieChart
+    public class PieChartDto
     {
         public decimal[] Series { get; set; }
         public string[] Labels { get; set; }

@@ -24,40 +24,6 @@ namespace WhiteLagoon.Infrastructure.Repository
             _db.Bookings.Update(booking);
         }
 
-        public void UpdateStatus(int bookingId, string bookingStatus, int villNumber)
-        {
-            var bookingFromDb = _db.Bookings.FirstOrDefault(U => U.Id == bookingId);
-            if (bookingFromDb != null)
-            {
-                bookingFromDb.Status = bookingStatus;
-                if (bookingStatus == SD.StatusCheckedIn)
-                {
-                    bookingFromDb.VillaNumber = villNumber;
-                    bookingFromDb.ActualCheckInDate = DateTime.Now;
-                }
-                if (bookingStatus == SD.StatusCompleted)
-                {
-                    bookingFromDb.ActualCheckOutDate = DateTime.Now;
-                }
-            }
-        }
-
-        public void UpdateStritePaymentId(int bookingId, string sessionId, string paymentIntentId)
-        {
-            var bookingFromDb = _db.Bookings.FirstOrDefault(U => U.Id == bookingId);
-            if (bookingFromDb != null) 
-            {
-                if(!string.IsNullOrEmpty(sessionId))
-                {
-                     bookingFromDb.StripeSessionId = sessionId;
-                }
-                if (!string.IsNullOrEmpty(paymentIntentId))
-                {
-                    bookingFromDb.StripePaymentIntentId = paymentIntentId;
-                    bookingFromDb.PaymentDate = DateTime.Now;
-                    bookingFromDb.IsPaymentSuccessful = true;
-                }
-            }
-        }
+       
     }
 }

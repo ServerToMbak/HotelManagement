@@ -3,6 +3,7 @@ using Syncfusion.Presentation;
 using System.Diagnostics;
 using WhiteLagoon.Application.Common.Interfaces;
 using WhiteLagoon.Application.Common.Utility;
+using WhiteLagoon.Application.Services.Interfaces;
 using WhiteLagoon.web.Models;
 using WhiteLagoon.web.VİewModel;
 
@@ -10,39 +11,26 @@ namespace WhiteLagoon.web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IVillaService _villaService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public HomeController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
+        public HomeController(IVillaService villaService, IWebHostEnvironment webHostEnvironment)
         {
-            _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
+            _villaService = villaService;
         }
 
         public IActionResult Index()
         {
             HomeVM homeVm = new HomeVM
             {
-                VillaList = _unitOfWork.Villa.GetAll(inculdeProperties: "VillaAmenity"),
+                VillaList = _villaService.GetAllVillas(),
                 Nights = 1,
                 CheckInDate = DateOnly.FromDateTime(DateTime.Now),
             };
             return View(homeVm);
         }
-        [HttpPost]
-        public IActionResult Index(HomeVM homeVM)
-        {
-            homeVM.VillaList = _unitOfWork.Villa.GetAll(inculdeProperties: "VillaAmenity");
-            foreach (var villa in homeVM.VillaList)
-            {
-                if (villa.Id % 2 == 0)
-                {
-                    villa.IsAvailable = false;
-                }
-            }
-
-            return View(homeVM);
-        }
+    
 
 
         [HttpPost]
@@ -50,22 +38,9 @@ namespace WhiteLagoon.web.Controllers
         {
 
 
-            var VillaList = _unitOfWork.Villa.GetAll(inculdeProperties: "VillaAmenity").ToList();
-            var villaNumberList = _unitOfWork.VillaNumber.GetAll().ToList();
-            var bookedVillas = _unitOfWork.Booking.GetAll(u => u.Status == SD.StatusApproved ||
-            u.Status == SD.StatusCheckedIn).ToList();
-
-
-            foreach (var villa in VillaList)
-            {
-                int roomAvailable = SD.VillaRoomsAvailableCount(villa.Id, villaNumberList, checkInDate, nights, bookedVillas);
-
-                villa.IsAvailable = roomAvailable > 0 ? true : false;
-            }
-
             HomeVM homeVM = new HomeVM
             {
-                VillaList = VillaList,
+                VillaList = _villaService.GetVilasAvailabilityByDate(nights,checkInDate),
                 CheckInDate =checkInDate,
                 Nights = nights
 
@@ -89,7 +64,7 @@ namespace WhiteLagoon.web.Controllers
         [HttpPost]
         public IActionResult GeneratedPPTExport(int id)
         {
-            var villa = _unitOfWork.Villa.Get(u => u.Id == id,inculdeProperties:"VillaAmenity");
+            var villa = _villaService.GetVillaById(id);
 
             if(villa is null)
             {
